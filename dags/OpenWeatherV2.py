@@ -49,7 +49,7 @@ def transform(**context):
     ret = []
     for d in data["daily"]:
         day = datetime.fromtimestamp(d["dt"]).strftime('%Y-%m-%d')
-        ret.append("{}',{},{},{},)".format(day, d["temp"]["day"], d["temp"]["min"], d["temp"]["max"]))
+        ret.append("('{}',{},{},{})".format(day, d["temp"]["day"], d["temp"]["min"], d["temp"]["max"]))
     return ret
 
 def load(**context):
