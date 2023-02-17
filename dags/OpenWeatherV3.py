@@ -11,7 +11,7 @@ import logging
 import psycopg2
 import json
 
-'''연결함수 정의''' 
+'''연결함수 정의'''
 def get_Redshift_connection():
     hook = PostgresHook(postgres_conn_id = 'redshift_dev_db')
     return hook.get_conn().cursor()
@@ -20,9 +20,9 @@ def get_Redshift_connection():
 def extract(**context):
     lat = context["params"]["lat"]
     lon = context["params"]["lon"]
-    api_key = Varialbe.get("open_weather_api_key")
+    api_key = Variable.get("open_weather_api_key")
     link = f"https://api.openweathermap.org/data/2.5/onecall?lat={lat}&lon={lon}&appid={api_key}&units=metric&exclude=current,minutely,hourly,alerts"
-    
+
     task_instance = context['task_instance']
     #execution_date = context['execution_date']
     #logging.info(execution_date)
@@ -32,8 +32,8 @@ def extract(**context):
     return f_json
 
 def transform(**context):
-    f_json = context["task_instance"].xcom_pull(key = "return_value", task_ids = "extract")
-    
+    data = context["task_instance"].xcom_pull(key = "return_value", task_ids = "extract")
+
     ret = []
     for d in data["daily"]:
         day = datetime.fromtimestamp(d["dt"]).strftime('%Y-%m-%d')
@@ -46,7 +46,7 @@ def load(**context):
 
     cur = get_Redshift_connection()
     ret = context["task_instance"].xcom_pull(key = "return_value", task_ids = "transform")
-    
+
     insert_sql = "BEGIN;DELETE FROM yeonjudodev.weather_forecast;INSERT INTO yeonjudodev.wether_forecast VALUES" +",".join(ret)
     logging.info(insert_sql)
     try:
@@ -55,7 +55,7 @@ def load(**context):
     except Exception as e:
         cur.execute("Rollback;")
         raise
-        
+
 """
 CREATE TABLE yeonjudodev.weather_forecast (
     date date,
