@@ -11,18 +11,30 @@ import logging
 import psycopg2
 import json
 
-'''연결함수 정의''' 
+#연결함수 정의 
 def get_Redshift_connection():
     hook = PostgresHook(postgres_conn_id = 'redshift_dev_db')
     return hook.get_conn().cursor()
 
-'''etl 함수 정의'''
+'''
+def get_Redshift_connection():
+    host = "learnde.cduaw970ssvt.ap-northeast-2.redshift.amazonaws.com"
+    redshift_user = "yeonjudodev"
+    redshift_pass = "Yeonjudodev!1"
+    port = 5439
+    dbname = "dev"
+    conn = psycopg2.connect(f"dbname={dbname} user={redshift_user} host={host} password={redshift_pass} port={port}")
+    conn.set_session(autocommit=True)
+    return conn.cursor()
+'''
+#etl 함수 정의
+
 def extract(**context):
     lat = context["params"]["lat"]
     lon = context["params"]["lon"]
-    api_key = Varialbe.get("open_weather_api_key")
+    api_key = Variable.get("open_weather_api_key")
     link = f"https://api.openweathermap.org/data/2.5/onecall?lat={lat}&lon={lon}&appid={api_key}&units=metric&exclude=current,minutely,hourly,alerts"
-    
+
     task_instance = context['task_instance']
     #execution_date = context['execution_date']
     #logging.info(execution_date)
@@ -32,8 +44,8 @@ def extract(**context):
     return f_json
 
 def transform(**context):
-    f_json = context["task_instance"].xcom_pull(key = "return_value", task_ids = "extract")
-    
+    data = context["task_instance"].xcom_pull(key = "return_value", task_ids = "extract")
+
     ret = []
     for d in data["daily"]:
         day = datetime.fromtimestamp(d["dt"]).strftime('%Y-%m-%d')
@@ -47,7 +59,8 @@ def load(**context):
     cur = get_Redshift_connection()
     ret = context["task_instance"].xcom_pull(key = "return_value", task_ids = "transform")
 
-    #임시 테이블 만들고 기존 테이블의 데이터 적재 
+    #incremental update 
+    #임시 테이블 만들고, 기존 테이블의 데이터 적재 
     create_sql = f"""DROP TABLE IF EXISTS {schema}.temp_{table};
     CREATE TABLE {schema}.temp_{table} (LIKE {schema}.{table} INCLUDING DEFAULTS);INSERT INTO {schema}.temp_{table} SELECT * FROM {schema}.{table};"""
     logging.info(create_sql)
@@ -83,7 +96,6 @@ def load(**context):
     except Exception as e:
         cur.execute("ROLLBACK;")
         raise
-        
 """
 CREATE TABLE yeonjudodev.weather_forecast (
     date date,
@@ -137,4 +149,4 @@ load = PythonOperator(
         dag = dag_open_weather
         )
 
-extract >> transform >> load               
+extract >> transform >> load
