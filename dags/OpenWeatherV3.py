@@ -47,7 +47,7 @@ def load(**context):
     cur = get_Redshift_connection()
     ret = context["task_instance"].xcom_pull(key = "return_value", task_ids = "transform")
 
-    insert_sql = "BEGIN;DELETE FROM yeonjudodev.weather_forecast;INSERT INTO yeonjudodev.wether_forecast VALUES" +",".join(ret)
+    insert_sql = "BEGIN;DELETE FROM yeonjudodev.weather_forecast;INSERT INTO yeonjudodev.weather_forecast VALUES" +",".join(ret)
     logging.info(insert_sql)
     try:
         cur.execute(insert_sql)
