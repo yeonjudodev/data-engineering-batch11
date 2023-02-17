@@ -85,7 +85,7 @@ def load(**context):
     alter_sql = f"""DELETE FROM {schema}.{table};
       INSERT INTO {schema}.{table}
       SELECT date, temp, min_temp, max_temp FROM (
-        SELECT *, ROW_NUMBER() OVER (PARTITION BY date ORDER BY created_date DESC) seq
+        SELECT *, ROW_NUMBER() OVER (PARTITION BY date ORDER BY updated_date DESC) seq
         FROM {schema}.temp_{table}
       )
       WHERE seq = 1;"""
@@ -102,7 +102,7 @@ CREATE TABLE yeonjudodev.weather_forecast (
     temp float,
     min_temp float,
     max_temp float,
-    created_date timestamp default GETDATE()
+    updated_date timestamp default GETDATE()
 );
 """
 
