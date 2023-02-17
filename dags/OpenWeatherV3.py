@@ -62,7 +62,7 @@ CREATE TABLE yeonjudodev.weather_forecast (
     temp float,
     min_temp float,
     max_temp float,
-    created_date timestamp default GETDATE()
+    updated_date timestamp default GETDATE()
 );
 """
 
