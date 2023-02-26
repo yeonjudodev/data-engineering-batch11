@@ -51,8 +51,8 @@ def etl():
     load(lines)
 
 
-dag_second_assignment = DAG(
-        dag_id = 'second_assignment',
+NameGenderV1 = DAG(
+        dag_id = 'NameGenderV1',
         catchup = False,
         start_date = datetime(2022,10,6), # 날짜가 미래인 경우 실행이 안됨
         schedule_interval = '0 2 * * *')  # 적당히 조절
@@ -60,4 +60,4 @@ dag_second_assignment = DAG(
 task = PythonOperator(
         task_id = 'perform_etl',
         python_callable = etl,
-        dag = dag_second_assignment)
+        dag = NameGenderV1)
