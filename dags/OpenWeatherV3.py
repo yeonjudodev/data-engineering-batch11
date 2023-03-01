@@ -47,7 +47,7 @@ def load(**context):
     cur = get_Redshift_connection()
     ret = context["task_instance"].xcom_pull(key = "return_value", task_ids = "transform")
 
-    insert_sql = "BEGIN;DELETE FROM yeonjudodev.weather_forecast;INSERT INTO yeonjudodev.weather_forecast VALUES" +",".join(ret)
+    insert_sql = f"BEGIN;DELETE FROM {schema}.{table};INSERT INTO {schema}.{table} VALUES " +",".join(ret)
     logging.info(insert_sql)
     try:
         cur.execute(insert_sql)
@@ -57,7 +57,7 @@ def load(**context):
         raise
 
 """
-CREATE TABLE yeonjudodev.weather_forecast (
+CREATE TABLE yeonjudodev.weather_forecast_full (
     date date,
     temp float,
     min_temp float,
@@ -67,7 +67,7 @@ CREATE TABLE yeonjudodev.weather_forecast (
 """
 
 dag_open_weather = DAG(
-        dag_id = 'dag_open_weahter_v3',
+        dag_id = 'dag_open_weahter_full',
         start_date = datetime(2023,2,15),
         schedule_interval = '0 2 * * *',
         max_active_runs = 1,
@@ -103,7 +103,7 @@ load = PythonOperator(
         python_callable = load,
         params = {
             "schema": "yeonjudodev",
-            "table": "weather_forecast"
+            "table": "weather_forecast_full"
         },
         provide_context = True,
         dag = dag_open_weather
