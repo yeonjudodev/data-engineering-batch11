@@ -97,7 +97,7 @@ def load(**context):
         cur.execute("ROLLBACK;")
         raise
 """
-CREATE TABLE yeonjudodev.weather_forecast (
+CREATE TABLE yeonjudodev.weather_forecast_incremental (
     date date,
     temp float,
     min_temp float,
@@ -106,8 +106,9 @@ CREATE TABLE yeonjudodev.weather_forecast (
 );
 """
 
+
 dag_open_weather = DAG(
-        dag_id = 'dag_open_weahter_v2',
+        dag_id = 'dag_open_weahter_incremental',
         start_date = datetime(2023,2,15),
         schedule_interval = '0 2 * * *',
         max_active_runs = 1,
@@ -143,7 +144,7 @@ load = PythonOperator(
         python_callable = load,
         params = {
             "schema": "yeonjudodev",
-            "table": "weather_forecast"
+            "table": "weather_forecast_incremental"
         },
         provide_context = True,
         dag = dag_open_weather
